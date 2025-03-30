@@ -1,0 +1,72 @@
+- Criação do Docker Network:
+
+docker network create mongoTrab04
+
+- Container:
+
+docker run -d --rm -p 27017:27017 --name mongo1 --network mongoTrab04 mongodb/mongodb-community-server:latest --replSet myReplicaSet --bind_ip localhost,mongo1
+
+docker run -d --rm -p 27018:27017 --name mongo2 --network mongoTrab04 mongodb/mongodb-community-server:latest --replSet myReplicaSet --bind_ip localhost,mongo2
+
+docker run -d --rm -p 27019:27017 --name mongo3 --network mongoTrab04 mongodb/mongodb-community-server:latest --replSet myReplicaSet --bind_ip localhost,mongo3
+
+docker run -d --rm -p 27020:27017 --name mongo4 --network mongoTrab04 mongodb/mongodb-community-server:latest --replSet myReplicaSet --bind_ip localhost,mongo4
+
+- Configurar a Inicialização do conjunto de regras:
+
+docker exec -it mongo1 mongosh
+
+- Salve a string "Connection To" em um bloco de notas
+
+mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000
+
+- Verificar se o comtainer esta Connect e execut
+
+db.runCommand ({hello:1})
+
+- Iniciar Repica
+
+rs.initiate ({ _id: "myReplicaSet", members:[{_id:0, host: "mongo1"},{_id:1, host: "mongo2"}, {_id:2, host: "mongo3"}, {_id:4, host: "mongo4"}]})
+
+- Teste e verificação do conjunto de réplicas:
+
+docker exec -it mongo1 mongosh --eval "rs.status()"
+
+..:: MONGO COMPASS ::..
+
+- Ver em que nó esta:
+
+rs.isMaster().primary
+
+- Criando um banco
+
+use TrabalhoDB
+
+- Inserindo no banco 
+
+db.cliente.insertOne({codigo:1, nome: "Lucas Leonardo"});
+db.cliente.insertOne({codigo:2, nome: "Kawã Crispim"});
+db.cliente.insertOne({codigo:3, nome: "Vinicius Vicentin"});
+db.cliente.insertOne({codigo:4, nome: "Luis Otavio"});
+db.cliente.insertOne({codigo:5, nome: "Marcos Zabuza"});
+
+- Mostrar os valores
+
+db.cliente.find()
+
+..:: FORA MONGO COMPASS ::..
+
+- Parando um dos Containers
+
+docker stop mongo1
+
+- Defenindo a replica como primario e ver os status
+
+docker exec -it mongo2 mongosh --eval "rs.status()"
+
+..:: MONGO COMPASS ::..
+
+-Inserindo dados em na Replica que virou primario
+
+db.cliente.insertOne({codigo:6, nome: "Teresa Maria"});
+db.cliente.insertOne({codigo:7, nome: "Maria Teresa"});
